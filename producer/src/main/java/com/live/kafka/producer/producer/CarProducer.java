@@ -1,4 +1,4 @@
-package com.live.kafka.producer.services;
+package com.live.kafka.producer.producer;
 
 import com.live.kafka.producer.controller.CarDTO;
 import org.slf4j.Logger;
@@ -19,5 +19,15 @@ public class CarProducer {
         this.kafkaTemplate = kafkaTemplate;
     }
 
-     
+    // Método para enviar a mensagem para o tópico
+    public void send(CarDTO carDTO) {
+        kafkaTemplate.send(topic, carDTO)
+            .thenAccept(result -> {
+                logger.info("Message send {}", result.getRecordMetadata());
+            })
+            .exceptionally(ex -> {
+                logger.error("Message sending failed {}", ex.getMessage());
+                return null;
+            });
+    }
 }
