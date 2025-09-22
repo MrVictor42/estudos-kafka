@@ -30,7 +30,8 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
 
-  schema-registry:
+  #Optional: Schema Registry é uma interface REST para o cluster Kafka que permite o registro e a recuperação de esquemas Avro.
+  schema-registry: 
     image: confluentinc/cp-schema-registry:5.5.1
     hostname: schema-registry
     container_name: schema-registry
@@ -41,3 +42,30 @@ services:
     environment:
       SCHEMA_REGISTRY_HOST_NAME: schema-registry
       SCHEMA_REGISTRY_KAFKASTORE_CONNECTION_URL: 'zookeeper:2181'
+
+  rest-proxy:
+    image: confluentinc/cp-kafka-rest:5.5.1
+    hostname: rest-proxy
+    container_name: rest-proxy
+    depends_on:
+      - zookeeper
+      - broker
+      - schema-registry
+    ports:
+      - "8082:8082"
+    environment:
+      KAFKA_REST_HOST_NAME: rest-proxy
+      KAFKA_REST_BOOTSTRAP_SERVERS: 'broker:29092'
+      KAFKA_REST_LISTENERS: 'http://0.0.0.0:8082'
+      KAFKA_REST_SCHEMA_REGISTRY_URL: 'http://schema-registry:8081'
+
+  kafdrop:
+    image: obsidiandynamics/kafdrop:3.27.0
+    hostname: kafdrop
+    container_name: kafdrop
+    depends_on:
+      - broker
+    ports:
+      - "9000:9000"
+    environment:
+      KAFKA_BROKERCONNECT: 'broker:29092'
